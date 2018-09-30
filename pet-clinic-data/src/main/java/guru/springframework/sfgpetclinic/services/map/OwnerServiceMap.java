@@ -49,10 +49,8 @@ public class OwnerServiceMap extends AbstractMapService<Owner, Long> implements 
                     .filter(pet -> pet.getId() == null)
                     .forEach(petService::save);
 
-            // safe owner
-            return super.save(owner);
         }
-        return null;
+        return super.save(owner);
     }
 
     @Override
