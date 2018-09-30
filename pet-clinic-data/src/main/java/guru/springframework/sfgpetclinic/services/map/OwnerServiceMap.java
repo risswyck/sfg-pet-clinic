@@ -2,12 +2,23 @@ package guru.springframework.sfgpetclinic.services.map;
 
 import guru.springframework.sfgpetclinic.model.Owner;
 import guru.springframework.sfgpetclinic.services.OwnerService;
+import guru.springframework.sfgpetclinic.services.PetService;
+import guru.springframework.sfgpetclinic.services.PetTypeService;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.Set;
 
 @Service
-public class OwnerServiceMap extends AbstractMapService<Owner,Long> implements OwnerService {
+public class OwnerServiceMap extends AbstractMapService<Owner, Long> implements OwnerService {
+
+    private final PetTypeService petTypeService;
+    private final PetService petService;
+
+    public OwnerServiceMap(PetTypeService petTypeService, PetService petService) {
+        this.petTypeService = petTypeService;
+        this.petService = petService;
+    }
 
     @Override
     public Set<Owner> findAll() {
@@ -20,8 +31,28 @@ public class OwnerServiceMap extends AbstractMapService<Owner,Long> implements O
     }
 
     @Override
-    public Owner save(Owner object) {
-        return super.save(object);
+    public Owner save(Owner owner) {
+        if (owner != null) {
+
+            // check if pet type is set
+            owner.getPets().stream()
+                    .map(pet -> Optional.ofNullable(pet.getPetType()))
+                    .forEach(petType -> Optional.ofNullable(petType).orElseThrow( () -> new RuntimeException("Pet Type is required in pet")));
+
+            // safe new pet types
+            owner.getPets().stream()
+                    .filter(pet -> pet.getPetType().getId() == null)
+                    .forEach(pet -> pet.setPetType(petTypeService.save(pet.getPetType())));
+
+            // safe new pets
+            owner.getPets().stream()
+                    .filter(pet -> pet.getId() == null)
+                    .forEach(petService::save);
+
+            // safe owner
+            return super.save(owner);
+        }
+        return null;
     }
 
     @Override
