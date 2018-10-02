@@ -32,7 +32,7 @@ public class VetMapService extends AbstractMapService<Vet, Long> implements VetS
     public Vet save(Vet vet) {
         if (vet != null) {
             // safe new specialties
-            vet.getSpecialities().stream()
+            vet.getSpecialties().stream()
                     .filter(specialty -> specialty.getId() == null)
                     .forEach(specialtyService::save);
         }
